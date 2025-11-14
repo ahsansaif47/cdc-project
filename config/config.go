@@ -10,13 +10,12 @@ import (
 )
 
 type Config struct {
-	DBUrl        string
-	ServiceName  string
-	ServerHost   string
-	ServerPort   string
-	DatabaseName string
-	RedisUrl     string
-	JWTSecret    string
+	DBUrl       string
+	ServiceName string
+	ServerHost  string
+	ServerPort  string
+	RedisUrl    string
+	JWTSecret   string
 }
 
 var Cfg Config
@@ -38,10 +37,12 @@ func loadConfig() (Config, error) {
 	err := godotenv.Load(filepath.Join("..", "..", ".env"))
 
 	return Config{
-		ServiceName:  os.Getenv("SERVICE_NAME"),
-		ServerHost:   os.Getenv("SERVER"),
-		ServerPort:   os.Getenv("PORT"),
-		DatabaseName: os.Getenv("SERVICE_DATABASE_NAME"),
+		ServiceName: os.Getenv("SERVICE_NAME"),
+		ServerHost:  os.Getenv("SERVER"),
+		ServerPort:  os.Getenv("PORT"),
+		DBUrl:       os.Getenv("DB_URL"),
+		RedisUrl:    os.Getenv("REDIS_URL"),
+		JWTSecret:   os.Getenv("JWT_SECRET"),
 	}, err
 
 }

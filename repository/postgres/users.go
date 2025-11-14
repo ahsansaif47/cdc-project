@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/ahsansaif47/cdc-app/models"
+	"github.com/ahsansaif47/cdc-app/repository/postgres/schema/sqlc"
 )
 
 type IUserRepository interface {
@@ -19,7 +20,7 @@ type IUserRepository interface {
 }
 
 type UserRepository struct {
-	db *sql.DB
+	db *generated.Queries
 }
 
 func NewUserRepository(db *sql.DB) IUserRepository {

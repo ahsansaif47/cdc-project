@@ -1,33 +1,83 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 
-	"github.com/ahsansaif47/cdc-app/config"
-	"github.com/ahsansaif47/cdc-app/http/routes"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/propagation"
+	sdkresource "go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
-// "gorm.io/gorm"
+func initTracer() (*sdktrace.TracerProvider, error) {
+	exporter, err := otlptrace.New(context.Background(), otlptracehttp.NewClient())
+	if err != nil {
+		return nil, err
+	}
 
-func init() {
+	// Optionally add resource info from environment (service.name, env, etc.)
+	res, err := sdkresource.New(
+		context.Background(),
+		sdkresource.WithFromEnv(),      // Reads OTEL_RESOURCE_ATTRIBUTES
+		sdkresource.WithTelemetrySDK(), // Adds SDK version info
+		sdkresource.WithHost(),         // Adds host info
+		sdkresource.WithAttributes(semconv.ServiceVersion("v0.1.0")),
+	)
+	if err != nil {
+		log.Printf("failed to create resource: %v", err)
+	}
 
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(res),
+	)
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{}, propagation.Baggage{}))
+	return tp, err
+}
+
+func add(ctx context.Context, a, b int) int {
+	ctx, span := otel.Tracer("go_manual").Start(ctx,
+		"add",
+		trace.WithAttributes(attribute.Int("a", a)),
+		trace.WithAttributes(attribute.Int("b", b)),
+	)
+
+	defer span.End()
+	return a + b
+}
+func calculateSeven(ctx context.Context) int {
+	ctx, span := otel.Tracer("go_manual").Start(ctx, "calculateSeven")
+	defer span.End()
+	return add(ctx, 3, add(ctx, 2, 2))
 }
 
 func main() {
+	tp, err := initTracer()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tp.Shutdown(context.Background())
 
+	calculateSeven(context.TODO())
 }
 
-func startHTTP() {
-	app := fiber.New()
-	// Add logger middleware
-	app.Use(logger.New())
+// func startHTTP() {
+// 	app := fiber.New()
+// 	// Add logger middleware
+// 	app.Use(logger.New())
 
-	routes.InitRoutes(app)
+// 	routes.InitRoutes(app)
 
-	port := config.GetConfig().ServerPort
-	log.Printf("Fiber server listening on port: %s", port)
-	log.Fatal(app.Listen(fmt.Sprintf(":%s", port)))
-}
+// 	port := config.GetConfig().ServerPort
+// 	log.Printf("Fiber server listening on port: %s", port)
+// 	log.Fatal(app.Listen(fmt.Sprintf(":%s", port)))
+// }

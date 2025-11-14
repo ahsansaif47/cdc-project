@@ -1,17 +1,20 @@
 package postgres
 
 import (
+	// "database/sql"
+
+	"context"
 	"log"
 	"sync"
 
 	"github.com/ahsansaif47/cdc-app/config"
-	"github.com/ahsansaif47/cdc-app/models"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Database struct {
-	Connection *gorm.DB
+	Connection *pgx.Conn
+	Pool       *pgxpool.Conn
 }
 
 var dbInstance *Database
@@ -27,23 +30,13 @@ func GetDatabaseConnection() *Database {
 	return dbInstance
 }
 
-func connect() *gorm.DB {
+func connect() *pgx.Conn {
 	c := config.GetConfig()
 
-	db, err := gorm.Open(postgres.Open(c.DBUrl), &gorm.Config{})
+	conn, err := pgx.Connect(context.Background(), c.DBUrl)
 	if err != nil {
-		log.Fatalf("Error connecting database: %v", err)
+		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	err = db.AutoMigrate(
-		&models.Role{},
-		&models.User{},
-		&models.UserAddress{},
-	)
-
-	if err != nil {
-		log.Fatalf("Error migrating database: %v", err)
-	}
-
-	return db
+	return conn
 }
