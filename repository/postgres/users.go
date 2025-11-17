@@ -4,7 +4,6 @@ import (
 	"context"
 
 	sqlc "github.com/ahsansaif47/cdc-app/repository/postgres/schema/sqlc/generated"
-	tutorial "github.com/ahsansaif47/cdc-app/repository/postgres/schema/sqlc/generated"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -25,7 +24,7 @@ type UserRepository struct {
 
 func NewUserRepository(db sqlc.DBTX) IUserRepository {
 	return &UserRepository{
-		db:  tutorial.New(db),
+		db:  sqlc.New(db),
 		ctx: context.Background(),
 	}
 }
