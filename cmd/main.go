@@ -2,8 +2,16 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
+	"github.com/ahsansaif47/cdc-app/config"
+	"github.com/ahsansaif47/cdc-app/http/routes"
+	"github.com/ahsansaif47/cdc-app/repository/postgres"
+	"github.com/ahsansaif47/cdc-app/repository/redis"
+	"github.com/gofiber/fiber/v2"
+	fl "github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -68,16 +76,24 @@ func main() {
 	defer tp.Shutdown(context.Background())
 
 	calculateSeven(context.TODO())
+
+	db := postgres.GetDatabaseConnection().Pool
+	cache := redis.NewCache()
+
+	appCache := redis.NewUserCache(cache)
+
+	startHTTP(db, appCache)
+
 }
 
-// func startHTTP() {
-// 	app := fiber.New()
-// 	// Add logger middleware
-// 	app.Use(logger.New())
+func startHTTP(db *pgxpool.Pool, cache redis.ICacheRepository) {
+	app := fiber.New()
+	// Add logger middleware
+	app.Use(fl.New())
 
-// 	routes.InitRoutes(app)
+	routes.InitRoutes(app, db, cache)
 
-// 	port := config.GetConfig().ServerPort
-// 	log.Printf("Fiber server listening on port: %s", port)
-// 	log.Fatal(app.Listen(fmt.Sprintf(":%s", port)))
-// }
+	port := config.GetConfig().ServerPort
+	log.Printf("Fiber server listening on port: %s", port)
+	log.Fatal(app.Listen(fmt.Sprintf(":%s", port)))
+}

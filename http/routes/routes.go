@@ -20,8 +20,8 @@ import (
 // @schemes					http
 // @securityDefinitions.apikey	BearerAuth
 // @in							header
-// @name						Meals-Service
-func InitRoutes(app *fiber.App) {
+// @name						CDC-APP
+func InitRoutes(app *fiber.App, db *pgxpool.Pool, cache redis.ICacheRepository) {
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	api := app.Group("/api")
@@ -29,7 +29,7 @@ func InitRoutes(app *fiber.App) {
 
 	userRoutes := v1.Group("/users")
 	fmt.Println(userRoutes)
-	// InitUserRoutes(userRoutes)
+	InitUserRoutes(userRoutes, db, cache)
 }
 
 func InitUserRoutes(userRoutes fiber.Router, db *pgxpool.Pool, cache redis.ICacheRepository) {
