@@ -73,7 +73,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer tp.Shutdown(context.Background())
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			log.Printf("failed to shutdown tracer provider: %v", err)
+		}
+	}()
 
 	calculateSeven(context.TODO())
 
