@@ -6,11 +6,12 @@ import (
 
 	"github.com/ahsansaif47/cdc-app/constants"
 	"github.com/ahsansaif47/cdc-app/http/dto"
-	"github.com/ahsansaif47/cdc-app/models"
+	tutorial "github.com/ahsansaif47/cdc-app/repository/postgres/schema/sqlc/generated"
 	"github.com/ahsansaif47/cdc-app/utils"
 	"github.com/ahsansaif47/cdc-app/utils/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"gorm.io/gorm"
 )
 
@@ -24,16 +25,23 @@ func (s *UserService) CreateUser(user *dto.UserSignupRequest) (int, string, erro
 
 	now := time.Now().UTC()
 	uuid := uuid.New()
-	newUser := &models.User{
-		ID:               uuid,
-		UserName:         user.UserName,
+	pgUUID := pgtype.UUID{}
+	err = pgUUID.Scan(uuid)
+
+	pgPassword := utils.ToPgText(&passwordHash)
+	dbTIme := utils.ToPgTime(now)
+	dbPhone := utils.ToPgText(user.PhoneNumber)
+
+	newUser := tutorial.CreateUserParams{
+		ID:               pgUUID,
+		Username:         user.UserName,
 		Email:            user.Email,
-		PasswordHash:     &passwordHash,
-		CreatedAt:        &now,
-		UpdatedAt:        &now,
+		PasswordHash:     pgPassword,
+		CreatedAt:        dbTIme,
+		UpdatedAt:        dbTIme,
 		AuthProviderType: user.AuthProvider,
-		PhoneNumber:      user.PhoneNumber,
-		RoleID:           user.RoleID,
+		PhoneNumber:      dbPhone,
+		RoleID:           int32(user.RoleID),
 	}
 	if err := s.repo.CreateUser(newUser); err != nil {
 		if errors.Is(err, constants.ErrUserAlreadyExists) {
@@ -62,15 +70,22 @@ func (s *UserService) SignIn(signinReq *dto.UserLoginRequest) (int, string, erro
 		}
 	}
 
+	passwordHash := utils.PgTextToString(user.PasswordHash)
+
 	switch user.AuthProviderType {
 	case "local":
 		// Check User Hash
-		ok := utils.CheckPasswordHash(signinReq.Password, *user.PasswordHash)
+		ok := utils.CheckPasswordHash(signinReq.Password, passwordHash)
 		if !ok {
 			return fiber.StatusInternalServerError, "", errors.New("password does not match")
 		}
 
-		token, err := jwt.GenerateJWT(user.ID.String(), signinReq.Email, user.UserName, user.RoleID)
+		uuid, err := utils.PgUUIDToUUID(user.ID)
+		if err != nil {
+			return fiber.StatusBadRequest, "", err
+		}
+
+		token, err := jwt.GenerateJWT(uuid, signinReq.Email, user.Username, uint(user.RoleID))
 		if err != nil {
 			return fiber.StatusInternalServerError, "", err
 		}
