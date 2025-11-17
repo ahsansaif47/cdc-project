@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"log"
+
 	"github.com/ahsansaif47/cdc-app/constants"
 	"github.com/ahsansaif47/cdc-app/http/controllers"
 	"github.com/ahsansaif47/cdc-app/http/dto"
@@ -19,7 +21,9 @@ func NewAuthHandler(service controllers.IUserService) *AuthHandler {
 	val := validator.New()
 
 	// Register all auth-related custom validators here
-	val.RegisterValidation("password", utils.PasswordValidator)
+	if err := val.RegisterValidation("password", utils.PasswordValidator); err != nil {
+		log.Fatalf("failed to register password validation: %v", err)
+	}
 
 	return &AuthHandler{
 		service:   service,
