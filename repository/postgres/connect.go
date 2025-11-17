@@ -14,7 +14,7 @@ import (
 
 type Database struct {
 	Connection *pgx.Conn
-	Pool       *pgxpool.Conn
+	Pool       *pgxpool.Pool
 }
 
 var dbInstance *Database
@@ -22,21 +22,28 @@ var dbOnce sync.Once
 
 func GetDatabaseConnection() *Database {
 	dbOnce.Do(func() {
-		dbInstance = &Database{
-			Connection: connect(),
-		}
+		dbInstance = connect()
 	})
 
 	return dbInstance
 }
 
-func connect() *pgx.Conn {
+func connect() *Database {
 	c := config.GetConfig()
+	ctx := context.Background()
 
-	conn, err := pgx.Connect(context.Background(), c.DBUrl)
+	conn, err := pgx.Connect(ctx, c.DBUrl)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	return conn
+	dbPool, err := pgxpool.New(ctx, c.DBUrl)
+	if err != nil {
+		log.Fatalf("Error connecting to database: %v", err)
+	}
+
+	return &Database{
+		Connection: conn,
+		Pool:       dbPool,
+	}
 }

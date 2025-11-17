@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/ahsansaif47/cdc-app/http/controllers"
@@ -10,6 +9,7 @@ import (
 	"github.com/ahsansaif47/cdc-app/repository/redis"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // @title						CDC-APP Local API
@@ -32,7 +32,8 @@ func InitRoutes(app *fiber.App) {
 	// InitUserRoutes(userRoutes)
 }
 
-func InitUserRoutes(userRoutes fiber.Router, db *sql.DB, cache redis.ICacheRepository) {
+func InitUserRoutes(userRoutes fiber.Router, db *pgxpool.Pool, cache redis.ICacheRepository) {
+
 	userRepo := postgres.NewUserRepository(db)
 	userService := controllers.NewUserService(userRepo, cache)
 	userHandlers := handlers.NewAuthHandler(userService)

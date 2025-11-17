@@ -6,7 +6,7 @@ import (
 
 	"github.com/ahsansaif47/cdc-app/constants"
 	"github.com/ahsansaif47/cdc-app/http/dto"
-	tutorial "github.com/ahsansaif47/cdc-app/repository/postgres/schema/sqlc/generated"
+	sqlcgenerated "github.com/ahsansaif47/cdc-app/repository/postgres/schema/sqlc/generated"
 	"github.com/ahsansaif47/cdc-app/utils"
 	"github.com/ahsansaif47/cdc-app/utils/jwt"
 	"github.com/gofiber/fiber/v2"
@@ -32,7 +32,7 @@ func (s *UserService) CreateUser(user *dto.UserSignupRequest) (int, string, erro
 	dbTIme := utils.ToPgTime(now)
 	dbPhone := utils.ToPgText(user.PhoneNumber)
 
-	newUser := tutorial.CreateUserParams{
+	newUser := sqlcgenerated.CreateUserParams{
 		ID:               pgUUID,
 		Username:         user.UserName,
 		Email:            user.Email,

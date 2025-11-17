@@ -2,11 +2,34 @@
 // versions:
 //   sqlc v1.30.0
 
-package tutorial
+package sqlcgenerated
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type Book struct {
+	ID            pgtype.UUID
+	Title         string
+	Author        pgtype.Text
+	Niche         pgtype.Text
+	Description   pgtype.Text
+	PublishedDate pgtype.Date
+	UserID        pgtype.UUID
+	CreatedAt     pgtype.Timestamptz
+	UpdatedAt     pgtype.Timestamptz
+}
+
+type Reservation struct {
+	ID           pgtype.UUID
+	UserID       pgtype.UUID
+	BookID       pgtype.UUID
+	ReservedFrom pgtype.Timestamptz
+	ReservedTo   pgtype.Timestamptz
+	Status       pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+}
 
 type Role struct {
 	ID        int32
