@@ -27,6 +27,9 @@ func (s *UserService) CreateUser(user *dto.UserSignupRequest) (int, string, erro
 	uuid := uuid.New()
 	pgUUID := pgtype.UUID{}
 	err = pgUUID.Scan(uuid)
+	if err != nil {
+		return fiber.StatusBadRequest, "", err
+	}
 
 	pgPassword := utils.ToPgText(&passwordHash)
 	dbTIme := utils.ToPgTime(now)
