@@ -34,7 +34,7 @@ func GetConfig() Config {
 }
 
 func loadConfig() (Config, error) {
-	err := godotenv.Load(filepath.Join("..", "..", ".env"))
+	err := godotenv.Load(filepath.Join("..", ".env"))
 
 	return Config{
 		ServiceName: os.Getenv("SERVICE_NAME"),
