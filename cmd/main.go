@@ -63,9 +63,9 @@ func add(ctx context.Context, a, b int) int {
 	return a + b
 }
 func calculateSeven(ctx context.Context) int {
-	_, span := otel.Tracer("go_manual").Start(ctx, "calculateSeven")
+	newCtx, span := otel.Tracer("go_manual").Start(ctx, "calculateSeven")
 	defer span.End()
-	return add(ctx, 3, add(ctx, 2, 2))
+	return add(newCtx, 3, add(newCtx, 2, 2))
 }
 
 func main() {
