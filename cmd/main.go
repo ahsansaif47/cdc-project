@@ -53,7 +53,7 @@ func initTracer() (*sdktrace.TracerProvider, error) {
 }
 
 func add(ctx context.Context, a, b int) int {
-	ctx, span := otel.Tracer("go_manual").Start(ctx,
+	_, span := otel.Tracer("go_manual").Start(ctx,
 		"add",
 		trace.WithAttributes(attribute.Int("a", a)),
 		trace.WithAttributes(attribute.Int("b", b)),
@@ -62,6 +62,7 @@ func add(ctx context.Context, a, b int) int {
 	defer span.End()
 	return a + b
 }
+
 func calculateSeven(ctx context.Context) int {
 	newCtx, span := otel.Tracer("go_manual").Start(ctx, "calculateSeven")
 	defer span.End()
