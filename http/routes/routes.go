@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"fmt"
-
 	"github.com/ahsansaif47/cdc-app/http/controllers"
 	"github.com/ahsansaif47/cdc-app/http/handlers"
 	"github.com/ahsansaif47/cdc-app/repository/postgres"
@@ -28,7 +26,6 @@ func InitRoutes(app *fiber.App, db *pgxpool.Pool, cache redis.ICacheRepository) 
 	v1 := api.Group("/v1")
 
 	userRoutes := v1.Group("/users")
-	fmt.Println(userRoutes)
 	InitUserRoutes(userRoutes, db, cache)
 }
 

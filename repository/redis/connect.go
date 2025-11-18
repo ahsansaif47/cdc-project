@@ -28,6 +28,9 @@ func NewCache() Cache {
 func connect() *redis.Client {
 	c := config.GetConfig()
 	opt, err := redis.ParseURL(c.RedisUrl)
+
+	opt.Protocol = 2
+
 	if err != nil {
 		log.Fatalf("error parsing redis config: %v", err)
 	}
